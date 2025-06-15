@@ -133,7 +133,7 @@ def neuron_using_numpy(
     # Calculate the dot product and add the bias
     output = np.dot(inputs_array, weights_array) + bias_value
 
-    return float(output)
+    return output
 
 
 def neuron_layer_using_numpy(
@@ -207,7 +207,7 @@ def neuron_layer_using_numpy(
     output = np.dot(weights_array, inputs_array) + biases_array
     # Return output as float if single neuron, else return as list
     if output.ndim == 1 and output.shape[0] == 1:
-        return float(output[0])
+        return output[0]
     else:
         return output.tolist()
 
@@ -288,6 +288,6 @@ def neuron_layer_with_batch_input_using_numpy(
 
     # Return output as float if single input and single neuron, else return as numpy array
     if output.ndim == 1 and output.shape[0] == 1:
-        return float(output[0])
+        return output[0]
     else:
         return output
