@@ -6,6 +6,7 @@ This file will be updated periodically as new helper functions are created.
 
 # Imports
 from typing import List, Union
+import numpy as np
 
 
 def neuron(input: list, weights: list, bias: float = 0.0) -> float:
@@ -95,3 +96,198 @@ def neuron_layer(
         outputs.append(output)
 
     return outputs if len(outputs) > 1 else outputs[0]
+
+
+def neuron_using_numpy(
+    inputs: List[Union[int, float]],
+    weights: List[Union[int, float]],
+    bias: Union[int, float],
+) -> float:
+    """Calculates the output of a neuron using numpy.
+    The function will convert inputs, weights, and bias to numpy arrays, compute the dot product of inputs and weights, add the bias, and return the result as a float.
+
+    Args:
+        inputs (List[Union[int, float]]): A list of input values to the neuron.
+        weights (List[Union[int, float]]): A list of weights corresponding to the inputs.
+        bias (Union[int, float]): The bias term to be added to the weighted sum.
+
+    Returns:
+        output (float): The output of the neuron as a float value.
+
+    Raises:
+        ValueError: If the lengths of inputs and weights do not match.
+
+    ---
+    Example:
+        >>> neuron_using_numpy([0.5, 0.2], [0.4, 0.6], 0.1)
+        0.42
+    """
+    if len(inputs) != len(weights):
+        raise ValueError("Length of inputs and weights must match.")
+
+    # Convert inputs, weights, and bias to numpy arrays
+    inputs_array = np.array(inputs, dtype=float)
+    weights_array = np.array(weights, dtype=float)
+    bias_value = float(bias)
+
+    # Calculate the dot product and add the bias
+    output = np.dot(inputs_array, weights_array) + bias_value
+
+    return float(output)
+
+
+def neuron_layer_using_numpy(
+    inputs: Union[float, List[float]],
+    weights: Union[float, List[float], List[List[float]]],
+    biases: Union[float, List[float]] = 0.0,
+) -> Union[float, List[float]]:
+    """Calculates the output of a layer of neurons using numpy.
+    The function will handle both single neuron and multiple neurons in a layer, allowing for flexible input and weight configurations.
+
+    Args:
+        inputs (Union[float, List[float]]): Input values to the layer, can be a single float or a list of floats.
+        weights (Union[float, List[float], List[List[float]]]): Weights for the layer, can be a single float, a list of floats for a single neuron, or a 2D list for multiple neurons.
+        biases (Union[float, List[float]], optional): Biases for the layer, can be a single float or a list of floats. Defaults to 0.0.
+
+    Returns:
+        Union[float, List[float]]: The output of the layer as a float if single neuron or a list of floats if multiple neurons.
+
+    Raises:
+        ValueError: If the dimensions of inputs, weights, and biases do not match appropriately.
+    ---
+    Example:
+        >>> neuron_layer_using_numpy([0.5, 0.2], [[0.4, 0.6], [0.3, 0.8]], [0.1, 0.2])
+        [0.42, 0.51]
+    """
+
+    # Convert inputs to numpy array
+    if isinstance(inputs, (int, float)):
+        inputs_array = np.array([float(inputs)])
+    else:
+        inputs_array = np.array(inputs, dtype=float)
+
+    # Convert weights to numpy array
+    if isinstance(weights, (int, float)):
+        weights_array = np.array([[float(weights)]])
+    elif isinstance(weights[0], (int, float)):
+        weights_array = np.array([weights], dtype=float)
+    else:
+        weights_array = np.array(weights, dtype=float)
+
+    # Convert biases to numpy array
+    if isinstance(biases, (int, float)):
+        biases_array = np.array([float(biases)])
+    else:
+        biases_array = np.array(biases, dtype=float)
+
+    # Check dimensions
+    if weights_array.ndim == 1:
+        if inputs_array.shape[0] != weights_array.shape[0]:
+            raise ValueError(
+                "Length of inputs must match length of weights for a single neuron."
+            )
+        if (
+            biases_array.shape[0] != 1
+            and biases_array.shape[0] != weights_array.shape[0]
+        ):
+            raise ValueError(
+                "Length of biases must match length of weights for a single neuron."
+            )
+    elif weights_array.ndim == 2:
+        if inputs_array.shape[0] != weights_array.shape[1]:
+            raise ValueError(
+                "Length of inputs must match number of columns in weights for multiple neurons."
+            )
+        if biases_array.shape[0] != weights_array.shape[0]:
+            raise ValueError(
+                "Length of biases must match number of rows in weights for multiple neurons."
+            )
+
+    # Calculate the output
+    output = np.dot(weights_array, inputs_array) + biases_array
+    # Return output as float if single neuron, else return as list
+    if output.ndim == 1 and output.shape[0] == 1:
+        return float(output[0])
+    else:
+        return output.tolist()
+
+
+def neuron_layer_with_batch_input_using_numpy(
+    inputs: Union[Union[float, List[float]], List[List[float]]],
+    weights: Union[float, List[float], List[List[float]]],
+    biases: Union[float, List[float]] = 0.0,
+) -> Union[float, np.ndarray]:
+    """Calculates the output of a layer of neurons with batch input using numpy.
+    The function will handle both single input and batch input scenarios, allowing for flexible configurations of inputs, weights, and biases.
+
+    Args:
+        inputs (Union[Union[float, List[float]], List[List[float]]]): List of input values to the layer, can be a single float, a list of floats for a single input, or a 2D list for batch inputs.
+        weights (Union[float, List[float], List[List[float]]]): Weights for the layer, can be a single float, a list of floats for a single neuron, or a 2D list for multiple neurons.
+        biases (Union[float, List[float]], optional): Biases for the layer, can be a single float or a list of floats. Defaults to 0.0.
+
+    Returns:
+        output (Union[float, np.ndarray]): The output of the layer, can be float if single input and single neuron, or a numpy array if batch input or multiple neurons.
+
+    Raises:
+        ValueError: If the dimensions of inputs, weights, and biases do not match appropriately.
+
+    ---
+    Example:
+        >>> neuron_layer_with_batch_input_using_numpy([[0.5, 0.2], [0.6, 0.3]], [[0.4, 0.6], [0.3, 0.8]], [0.1, 0.2])
+        array([[0.42, 0.51],
+               [0.52, 0.62]])
+    """
+
+    # Convert inputs to numpy array
+    if isinstance(inputs, (int, float)):
+        inputs_array = np.array([[float(inputs)]])
+    elif isinstance(inputs[0], (int, float)):
+        inputs_array = np.array([inputs], dtype=float)
+    else:
+        inputs_array = np.array(inputs, dtype=float)
+
+    # Convert weights to numpy array
+    if isinstance(weights, (int, float)):
+        weights_array = np.array([[float(weights)]])
+    elif isinstance(weights[0], (int, float)):
+        weights_array = np.array([weights], dtype=float)
+    else:
+        weights_array = np.array(weights, dtype=float)
+
+    # Convert biases to numpy array
+    if isinstance(biases, (int, float)):
+        biases_array = np.array([float(biases)])
+    else:
+        biases_array = np.array(biases, dtype=float)
+
+    # Check dimensions
+    if weights_array.ndim == 1:
+        if inputs_array.shape[1] != weights_array.shape[0]:
+            raise ValueError(
+                "Length of inputs must match length of weights for a single neuron."
+            )
+        if (
+            biases_array.shape[0] != 1
+            and biases_array.shape[0] != weights_array.shape[0]
+        ):
+            raise ValueError(
+                "Length of biases must match length of weights for a single neuron."
+            )
+    elif weights_array.ndim == 2:
+        if inputs_array.shape[1] != weights_array.shape[1]:
+            raise ValueError(
+                "Length of inputs must match number of columns in weights for multiple neurons."
+            )
+        if biases_array.shape[0] != weights_array.shape[0]:
+            raise ValueError(
+                "Length of biases must match number of rows in weights for multiple neurons."
+            )
+
+    # Calculate the output
+    output = np.dot(inputs_array, weights_array.T) + biases_array
+
+    # Return output as float if single input and single neuron, else return as numpy array
+    if output.ndim == 1 and output.shape[0] == 1:
+        return float(output[0])
+    else:
+        return output
