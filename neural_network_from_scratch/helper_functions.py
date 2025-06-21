@@ -291,3 +291,100 @@ def neuron_layer_with_batch_input_using_numpy(
         return output[0]
     else:
         return output
+
+
+def mlp_using_numpy(
+    inputs: Union[float, List[float], List[List[float]]], num_layers: int, *args
+) -> Union[float, List[float], List[List[float]]]:
+    """
+    Implements a simple Multi-Layer Perceptron (MLP) using NumPy, without activation functions.
+    Supports scalar, vector, or batch input and arbitrary number of layers with custom weights/biases.
+
+    The function expects arguments in the following sequence:
+    - inputs: scalar / list / list of lists
+    - num_layers: total number of layers (hidden + output)
+    - *args: A flat sequence alternating weights and biases for each layer:
+        (weights1, bias1, weights2, bias2, ..., weightsN, biasN)
+
+    Each weight should be a 2D list (neurons_in_layer, input_dim),
+    and each bias should be a 1D list (length = neurons_in_layer).
+
+    Args:
+        inputs (Union[float, List[float], List[List[float]]]):
+            Input to the network. Can be:
+                - float: scalar input
+                - list of floats: single sample
+                - list of list of floats: batch of samples
+        num_layers (int): Number of layers in the MLP (including output layer)
+        *args: Weights and biases for each layer, alternating as
+               weights1, bias1, weights2, bias2, ..., weightsN, biasN.
+
+    Returns:
+        Union[float, List[float], List[List[float]]]: Output of the MLP
+            - float if single scalar output
+            - list of floats for single sample
+            - list of list of floats for batch output
+
+    Raises:
+        ValueError: If shape mismatches or incorrect number of arguments are detected.
+
+    Example:
+        >>> mlp_using_numpy([1.0, 2.0], 2,
+        ...                 [[0.5, 0.5], [0.5, 0.5]], [0.1, 0.1],
+        ...                 [[0.3, 0.3], [0.3, 0.3]], [0.2, 0.2])
+        [1.16, 1.16]
+    """
+
+    # Convert inputs to NumPy array and reshape if needed
+    inputs = np.array(inputs, dtype=float)
+
+    if inputs.ndim == 0:
+        inputs = inputs.reshape(1, 1)  # scalar input
+    elif inputs.ndim == 1:
+        inputs = inputs.reshape(1, -1)  # single input vector
+    elif inputs.ndim == 2:
+        pass  # batch input
+    else:
+        raise ValueError("Input must be a scalar, 1D list, or 2D list.")
+
+    # Validate number of layers
+    if num_layers < 1:
+        raise ValueError("Number of layers must be at least 1.")
+
+    # Validate number of weight/bias arguments
+    if len(args) != 2 * num_layers:
+        raise ValueError(
+            f"Expected {2 * num_layers} arguments for {num_layers} layers (weights and biases), but got {len(args)}."
+        )
+
+    # Forward pass through each layer
+    output = inputs
+    for layer in range(num_layers):
+        weights = np.array(args[2 * layer], dtype=float)
+        biases = np.array(args[2 * layer + 1], dtype=float)
+
+        if weights.ndim != 2:
+            raise ValueError(f"Layer {layer + 1} weights must be a 2D list or array.")
+        if biases.ndim != 1:
+            raise ValueError(f"Layer {layer + 1} biases must be a 1D list or array.")
+
+        if weights.shape[1] != output.shape[1]:
+            raise ValueError(
+                f"Shape mismatch at layer {layer + 1}: weight expects input of shape (*, {weights.shape[1]}), got (*, {output.shape[1]})."
+            )
+
+        if biases.shape[0] != weights.shape[0]:
+            raise ValueError(
+                f"Shape mismatch: bias length ({biases.shape[0]}) does not match number of neurons ({weights.shape[0]}) at layer {layer + 1}."
+            )
+
+        # Forward step: output = input @ weights.T + bias
+        output = output @ weights.T + biases
+
+    # Output formatting
+    if output.shape[0] == 1:
+        if output.shape[1] == 1:
+            return float(output[0, 0])  # scalar output
+        return output.flatten().tolist()  # single sample output
+    else:
+        return output.tolist()  # batch output
