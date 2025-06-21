@@ -1,6 +1,6 @@
 # Neural Network from Scratch
 
-Welcome to the `neural_network_from_scratch` folder of the [`build_from_scratch`](https://github.com/your-username/build_from_scratch) repository.  
+Welcome to the `neural_network_from_scratch` folder of the [`build_from_scratch`](https://github.com/Harper2123/build_from_scratch) repository.  
 This section is dedicated to implementing neural network components entirely from scratch — starting from the most basic neuron to full-fledged Multi-Layer Perceptrons (MLPs) — without relying on high-level libraries like TensorFlow or PyTorch.
 
 The main goal is to **demystify the internals of neural networks** and build an intuitive understanding by coding each piece manually. Early implementations even avoid using NumPy, making it an excellent learning resource for beginners and enthusiasts alike.
